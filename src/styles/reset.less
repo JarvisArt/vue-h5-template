@@ -1,0 +1,98 @@
+
+// 浏览器默认样式
+html,body{
+  line-height: 1;
+  // 使用具有回弹效果的滚动, 当手指从触摸屏上移开，内容会继续保持一段时间的滚动效果。继续滚动的速度和持续的时间和滚动手势的强烈程度成正比。同时也会创建一个新的堆栈上下文。
+  -webkit-overflow-scrolling: touch;
+
+  // 去掉后IOS元素点击会出现灰色背景
+  -webkit-tap-highlight-color: transparent; 
+
+  //Android手机圆角失效
+  background-clip: padding-box;
+
+  font-family: PingFangSC-Semibold;
+
+  // android上去掉语音输入按钮
+  input::-webkit-input-speech-button {display: none};
+  font-size: 16px;
+  word-spacing: 1px;
+  font-weight: normal;
+  -ms-text-size-adjust: 100%;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: none;
+  box-sizing: border-box;
+}
+
+/****************
+ * @description : css reset
+ ****************/
+// html,body{height:100%;min-width:1220px;}
+// h1,h2,h3,h4,h5,h6{font-size:100%}
+img{vertical-align:middle;border:0;-ms-interpolation-mode:bicubic;}
+button,input,select,textarea{font-size:100%; vertical-align:middle;outline:none;border:none;}
+textarea{resize:none}
+button,input[type="button"],input[type="reset"],input[type="submit"] {cursor:pointer;-webkit-appearance:button;-moz-appearance:button;}
+input:focus:-moz-placeholder,input:focus::-webkit-input-placeholder {color:transparent,}
+button::-moz-focus-inner,input::-moz-focus-inner { padding:0; border:0}
+table { border-collapse:collapse; border-spacing:0}
+.break { word-break:break-all; word-wrap:break-word}
+header, footer, article, section, nav, menu, hgroup {display: block;clear:all;}
+
+img[src=""],img:not([src]) {
+  opacity: 0;
+}
+
+*,
+*:before,
+*:after {
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  list-style: none;
+}
+a {
+  text-decoration: none;
+}
+img, input, button, textarea {
+  border: none;
+}
+input, button {
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  &:focus {
+    outline: none;
+  }
+}
+textarea {
+  resize: none;
+}
+// h1, h2, h3, h4, h5, h6
+h1, h2, h3, h4, h5, h6, a, input, select, button, option, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  font-style: inherit;
+  line-height: inherit;
+  color: inherit;
+  outline: none;
+}
+
+/*取消部分浏览器`input[type='number']`的默认样式*/
+input[type='number'] {
+    -moz-appearance: textfield;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+// 不可点击时底色不变
+input:disabled{
+  background-color: transparent;
+}

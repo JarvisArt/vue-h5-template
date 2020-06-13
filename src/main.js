@@ -3,7 +3,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import 'amfe-flexible'
-import 'normalize.css'
+import './styles/reset.less'
 import FastClick from 'fastclick'
 
 FastClick.attach(document.body)

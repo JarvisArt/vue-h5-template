@@ -11,7 +11,6 @@
     "amfe-flexible": "^2.2.1",
     "core-js": "^3.6.5",
     "fastclick": "^1.0.6",
-    "normalize.css": "^8.0.1",
     "vant": "^2.8.5",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
