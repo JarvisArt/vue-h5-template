@@ -9,7 +9,6 @@
   font-family: PingFangSC-Semibold;
   font-size: 16px;
   line-height: 1;
-  color: #FFFCF2;
   touch-action: pan-y;
 }
 </style>

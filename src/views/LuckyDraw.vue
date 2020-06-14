@@ -13,8 +13,13 @@
           <span>{{item.prizeName}}</span>
         </van-swipe-item>
       </van-swipe>
-      <div class="prize-wrap" v-for="(item, index) in info.prizes" :key="index">
-        <div class="prize-img"></div>
+      <div
+        :key="index"
+        class="prize-wrap"
+        :class="{'active-prize': index === activeIndex}"
+        v-for="(item, index) in info.prizes"
+      >
+        <div class="prize-img" :style="{backgroundImage: `url(${item.imgUrl})`}"></div>
         {{item.name}}
       </div>
       <div class="lucky-btn" @click="handleStart">
@@ -25,18 +30,58 @@
       </div>
     </div>
     <div class="footer">
-      <div class="btn" @click="showRule">活动规则</div>
-      <div class="btn">中奖纪录</div>
+      <div class="btn" @click="showPopub('rule')">活动规则</div>
+      <div class="btn" @click="showPopub('winning')">中奖纪录</div>
     </div>
-    <van-popup v-model="show" duration="0.2">
-      <div class="rule">
-        <h1>活动规则</h1>
-        <div class="content" v-html="info.detailMessage"></div>
-      </div>
-      <div class="close-wrap" @click="hiddenRule">
-        <div class="close-btn"></div>
-      </div>
-    </van-popup>
+    <div class="rule-popup">
+      <van-popup v-model="show" duration="0.2">
+        <div class="rule">
+          <template v-if="showType === 'rule'">
+            <h1>活动规则</h1>
+            <div class="rule-content" v-html="info.detailMessage"></div>
+          </template>
+          <template v-else>
+            <h1>中奖纪录</h1>
+            <div class="winning-content">
+              <template v-if="info.winningRecord.length">
+                <div class="item" v-for="(item) in info.winningRecord" :key="item.id">
+                  <span>抽中{{item.prizeName}}</span>
+                  <span>{{item.time}}</span>
+                </div>
+              </template>
+              <p class="empty" v-else>暂无中奖纪录</p>
+            </div>
+          </template>
+          <div class="btn-wrap">
+            <div class="btn cancel" @click="hiddenPopup">我知道了</div>
+            <div class="btn" v-if="info.winningRecord.length" @click="goToAddress">填写地址</div>
+          </div>
+        </div>
+        <div class="close-wrap" @click="hiddenPopup">
+          <div class="close-btn" v-if="showType === 'rule'"></div>
+        </div>
+      </van-popup>
+    </div>
+    <div class="win-popup">
+      <van-popup v-model="winShow" duration="0.1" @click-overlay="hiddenWinPopup">
+        <p class="title1">恭喜您获得</p>
+        <p class="title2">{{prizeDetail.name}}</p>
+        <div class="coloured-ribbon">
+          <div class="img" :style="{ backgroundImage: `url(${prizeDetail.img})` }"></div>
+        </div>
+        <div class="btn-wrap">
+          <div class="btn cancel" @click="hiddenWinPopup">我知道了</div>
+          <div class="btn" @click="goToAddress">填写地址</div>
+        </div>
+      </van-popup>
+    </div>
+    <div class="not-win-popup">
+      <van-popup v-model="notWinShow" duration="0.2">
+        <h1>很遗憾，您未中奖</h1>
+        <img src="../assets/luckyDraw/cry.png" />
+        <div class="btn" @click="hiddenNotWinPopup">好吧下次再来</div>
+      </van-popup>
+    </div>
   </div>
 </template>
 
@@ -44,7 +89,7 @@
 import { NoticeBar, Swipe, SwipeItem, Popup } from 'vant'
 
 export default {
-  name: 'About',
+  name: 'LuckyDraw',
   components: {
     [NoticeBar.name]: NoticeBar,
     [Swipe.name]: Swipe,
@@ -53,7 +98,16 @@ export default {
   },
   data () {
     return {
-      show: true,
+      show: false,
+      showType: '',
+      winShow: false,
+      notWinShow: false,
+      activeIndex: -1,
+      winIndex: 5,
+      prizeDetail: {
+        name: '100M云空间',
+        img: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1591960867675&di=97b931661cf964c8f12d5ee01ab73c9d&imgtype=0&src=http%3A%2F%2Fbpic.588ku.com%2Felement_origin_min_pic%2F16%2F10%2F27%2F8f751bb65494c10cb1378282edde7599.jpg'
+      },
       info: {
         num: 6,
         detailMessage: '<p>1、 如您成功中奖,请务必在24小时内点击“立即领取”,并填写联系人、手机号、邮寄地址等信息,以便统计发奖；</p><p>若不在规定时间内点击领奖并填写信息,则视为自动放弃该奖项；</p><p>2、奖品发放：所有奖品的发放都将以您抽奖后填写的邮寄信息为依据,请确保填写无误。</p><p>(1)精美课件包:系统将在活动结束后的7个工作日内,将课件获取链接通过希沃学院站内信发送至您的账号;</p><p>3、点击这里下载希沃白板5进行高效备课 规则活动规</p><p>1、 如您成功中奖,请务必在24小时内点击“立即领取”,并填写联系人、手机号、邮寄地址等信息,以便统计发奖；</p><p>若不在规定时间内点击领奖并填写信息,则视为自动放弃该奖项；</p><p>2、奖品发放：所有奖品的发放都将以您抽奖后填写的邮寄信息为依据,请确保填写无误。</p><p>(1)精美课件包:系统将在活动结束后的7个工作日内,将课件获取链接通过希沃学院站内信发送至您的账号;</p><p>3、点击这里下载希沃白板5进行高效备课 规则活动规</p>',
@@ -106,35 +160,84 @@ export default {
           { id: '1232324344', prizeName: '100M云空间_04' },
           { id: '1232324345', prizeName: '100M云空间_05' },
           { id: '1232324346', prizeName: '100M云空间_06' }
+        ],
+        winningRecord: [
+          { id: '1232324341', prizeName: '100M云空间_01', time: '11-07  03:08' },
+          { id: '1232324342', prizeName: '100M云空间_02', time: '11-07  03:08' },
+          { id: '1232324343', prizeName: '100', time: '11-07  03:08' },
+          { id: '1232324344', prizeName: '100M云空间_04', time: '11-07  03:08' },
+          { id: '1232324345', prizeName: '100M云空间_05', time: '11-07  03:08' },
+          { id: '1232324346', prizeName: '100M云空间_06', time: '11-07  03:08' }
         ]
       }
     }
   },
   mounted () {
-
+    document.querySelector('body').setAttribute('style', 'background-color: #FF6412')
+  },
+  beforeDestroy () {
+    document.querySelector('body').removeAttribute('style')
   },
   methods: {
     handleStart () {
-      console.log('开始抽奖！！！')
+      if (this.timer) { return false }
+      let speed = 200
+      let count = 0
+      const winCount = 70 + this.winIndex
+      const startFn = () => {
+        count++
+        this.activeIndex = this.activeIndex === 9 ? 0 : this.activeIndex + 1
+        if (count === winCount) {
+          clearTimeout(this.timer)
+          this.timer = null
+          setTimeout(() => {
+            this.winShow = true
+          }, 500)
+          return
+        }
+        if (count < 16) {
+          speed = speed - 10
+        } else if (count > 60) {
+          speed = speed + 15
+        }
+        this.timer = setTimeout(startFn, speed)
+      }
+      this.timer = setTimeout(startFn, speed)
     },
-    showRule () {
+    showPopub (type) {
       this.show = true
+      this.showType = type
     },
-    hiddenRule () {
+    hiddenPopup () {
       this.show = false
+    },
+    hiddenWinPopup () {
+      this.winShow = false
+      this.activeIndex = -1
+    },
+    hiddenNotWinPopup () {
+      this.notWinShow = false
+    },
+    goToAddress () {
+      this.$router.push({ path: 'address', query: { plan: 'private' } })
     }
   }
 }
 </script>
 
 <style lang="less">
-body {
-  background: #FF6412;
-}
 .p-lucky-draw {
+  .button {
+    color: #B0340C;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    background-image: linear-gradient(180deg, #FFE077 0%, #FFC541 100%);
+  }
   .banner {
     width: 375px;
     height: 97px;
+    color: #FFFCF2;
     background-image: url(../assets/luckyDraw/sweepstakes-banner.png);
     background-size: 375px 123px;
     padding-top: 26px;
@@ -189,7 +292,6 @@ body {
       .prize-img {
         width: 50px;
         height: 33px;
-        background-image: url('https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1591960867675&di=97b931661cf964c8f12d5ee01ab73c9d&imgtype=0&src=http%3A%2F%2Fbpic.588ku.com%2Felement_origin_min_pic%2F16%2F10%2F27%2F8f751bb65494c10cb1378282edde7599.jpg');
         background-repeat: no-repeat;
         background-position: center center;
         background-size: cover;
@@ -201,10 +303,7 @@ body {
       top: @top;
       left: @left;
     }
-    .prize-wrap:nth-child(2) {
-      .prize-position(60px, 25px);
-      background-image: linear-gradient(0deg, #eebd89, #d13abd);
-    }
+    .prize-wrap:nth-child(2) { .prize-position(60px, 25px); }
     .prize-wrap:nth-child(3) { .prize-position(60px, 122px); }
     .prize-wrap:nth-child(4) { .prize-position(60px, 219px); }
     .prize-wrap:nth-child(5) { .prize-position(134px, 219px); }
@@ -214,6 +313,10 @@ body {
     .prize-wrap:nth-child(9) { .prize-position(282px, 25px); }
     .prize-wrap:nth-child(10) { .prize-position(208px, 25px); }
     .prize-wrap:nth-child(11) { .prize-position(134px, 25px); }
+    .active-prize {
+      color: #ffffff;
+      background-image: linear-gradient(0deg, #eebd89, #d13abd);
+    }
     .lucky-btn {
       width: 92px;
       height: 120px;
@@ -250,23 +353,23 @@ body {
     margin-top: 12px;
     margin-bottom: 20px;
     .btn {
-      color: #B0340C;
-      font-size: 16px;
-      font-weight: bold;
-      text-align: center;
+      .button;
       line-height: 50px;
       width: 160px;
       height: 50px;
-      background-image: linear-gradient(180deg, #FFE077 0%, #FFC541 100%);
       border-radius: 25px;
       margin: 0 8px;
     }
   }
   .van-popup {
-    width: 295px;
-    height: 404px;
     overflow: hidden;
-    background: rgba(0, 0, 0, 0);
+    background: transparent;
+  }
+  .rule-popup {
+    .van-popup {
+      width: 295px;
+      height: 404px;
+    }
     .rule {
       width: 295px;
       height: 338px;
@@ -280,15 +383,80 @@ body {
         font-weight: bold;
         margin-top: 20px;
       }
-      .content {
+      .scroll-content {
         color: #666666;
         font-size: 12px;
         line-height: 21px;
         width: 255px;
-        height: 252px;
-        margin: 28px auto 0 auto;
+        margin: 0 auto;
         overflow: scroll;
-
+        &::-webkit-scrollbar-track-piece {
+          background-color: rgba(0, 0, 0, 0);
+          border-left: 1px solid rgba(0, 0, 0, 0);
+        }
+        &::-webkit-scrollbar {
+          width: 4px;
+          height: 0px;
+          -webkit-border-radius: 5px;
+          -moz-border-radius: 5px;
+          border-radius: 5px;
+        }
+        &::-webkit-scrollbar-thumb {
+          background-color: rgba(0, 0, 0, 0.1);
+          background-clip: padding-box;
+          -webkit-border-radius: 5px;
+          -moz-border-radius: 5px;
+          border-radius: 5px;
+          min-height: 28px;
+        }
+        &::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(0, 0, 0, 0.1);
+          -webkit-border-radius: 5px;
+          -moz-border-radius: 5px;
+          border-radius: 5px;
+        }
+      }
+      .rule-content {
+        .scroll-content;
+        height: 252px;
+        margin-top: 28px;
+      }
+      .winning-content {
+        .scroll-content;
+        height: 196px;
+        margin-top: 20px;
+        padding: 0;
+        .item {
+          display: flex;
+          justify-content: space-between;
+          padding-bottom: 10px;
+          &:not(:last-child)  {
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eeeeee;
+          }
+        }
+        .empty {
+          font-size: 12px;
+          line-height: 196px;
+          text-align: center;
+        }
+      }
+      .btn-wrap {
+        display: flex;
+        justify-content: center;
+        padding-top: 20px;
+        .btn {
+          .button;
+          width: 120px;
+          height: 40px;
+          line-height: 40px;
+          border-radius: 20px;
+          margin: 0 8px;
+        }
+        .cancel {
+          color: #666666;
+          background: #eeeeee;
+        }
       }
     }
     .close-wrap {
@@ -313,6 +481,80 @@ body {
         &::before { .btn-line(45deg) }
         &::after { .btn-line(134deg) }
       }
+    }
+  }
+  .win-popup {
+    text-align: center;
+    .title1 {
+      font-size: 18px;
+      line-height: 19px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+    .title2 {
+      font-size: 30px;
+      font-weight: bold;
+      color: #FFCA51;
+      margin-top: 10px;
+    }
+    .coloured-ribbon {
+      width: 280px;
+      height: 280px;
+      background-image: url(../assets/luckyDraw/coloured-ribbon.png);
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      top: -14px;
+      .img {
+        width: 180px;
+        height: 120px;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
+        margin: 0 auto;
+      }
+    }
+    .btn-wrap {
+      display: flex;
+      margin-top: 8px;
+      .btn  {
+        .button;
+        width: 120px;
+        height: 50px;
+        line-height: 50px;
+        margin: 0 8px;
+        border-radius: 25px;
+      }
+      .cancel {
+        color: #ffffff;
+        box-sizing: border-box;
+        border: 1px solid #ffffff;
+        background: transparent;
+      }
+    }
+  }
+  .not-win-popup {
+    text-align: center;
+    h1 {
+      font-size: 24px;
+      font-weight: bold;
+      color: #FFFFFF;
+    }
+    img {
+      width: 180px;
+      height: 120px;
+      margin: 30px 0;
+    }
+    .btn {
+      .button;
+      width: 255px;
+      line-height: 50px;;
+      height: 50px;
+      border-radius: 25px;
     }
   }
 }
