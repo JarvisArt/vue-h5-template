@@ -1,12 +1,12 @@
 <template>
   <div class="p-lucky-draw">
     <div class="banner">
-      <div class="title">这里是大标题</div>
-      <p>已有9999人参与活动</p>
+      <div class="title">{{detail.title}}</div>
+      <p>已有{{detail.virtualParticipantCount}}人参与活动</p>
     </div>
     <div class="main">
       <van-swipe class="my-swipe" autoplay="3000" :show-indicators="false" :touchable="false" vertical>
-        <van-swipe-item v-for="item in info.winning" :key="item.id">
+        <van-swipe-item v-for="item in detail.winning" :key="item.id">
           <span>恭喜</span>&nbsp;
           <span>{{item.id}}</span>&nbsp;
           <span>抽中</span>&nbsp;
@@ -17,7 +17,7 @@
         :key="index"
         class="prize-wrap"
         :class="{'active-prize': index === activeIndex}"
-        v-for="(item, index) in info.prizes"
+        v-for="(item, index) in detail.prizes"
       >
         <div class="prize-img" :style="{backgroundImage: `url(${item.imgUrl})`}"></div>
         {{item.name}}
@@ -26,7 +26,7 @@
         <span class="start">开始</span>
         <span class="start">抽奖</span>
         <span class="text">今日抽奖次数</span>
-        <span class="count">{{info.num}}</span>
+        <span class="count">{{detail.num}}</span>
       </div>
     </div>
     <div class="footer">
@@ -34,17 +34,17 @@
       <div class="btn" @click="showPopub('winning')">中奖纪录</div>
     </div>
     <div class="rule-popup">
-      <van-popup v-model="show" duration="0.2">
+      <van-popup v-model="show" duration="0.1">
         <div class="rule">
           <template v-if="showType === 'rule'">
             <h1>活动规则</h1>
-            <div class="rule-content" v-html="info.detailMessage"></div>
+            <div class="rule-content" v-html="detail.detailMessage"></div>
           </template>
           <template v-else>
             <h1>中奖纪录</h1>
             <div class="winning-content">
-              <template v-if="info.winningRecord.length">
-                <div class="item" v-for="(item) in info.winningRecord" :key="item.id">
+              <template v-if="detail.winningRecord.length">
+                <div class="item" v-for="(item) in detail.winningRecord" :key="item.id">
                   <span>抽中{{item.prizeName}}</span>
                   <span>{{item.time}}</span>
                 </div>
@@ -54,7 +54,7 @@
           </template>
           <div class="btn-wrap">
             <div class="btn cancel" @click="hiddenPopup">我知道了</div>
-            <div class="btn" v-if="info.winningRecord.length" @click="goToAddress">填写地址</div>
+            <div class="btn" v-if="detail.winningRecord.length" @click="goToAddress">填写地址</div>
           </div>
         </div>
         <div class="close-wrap" @click="hiddenPopup">
@@ -76,10 +76,11 @@
       </van-popup>
     </div>
     <div class="not-win-popup">
-      <van-popup v-model="notWinShow" duration="0.2">
+      <van-popup v-model="notWinShow" duration="0.1">
         <h1>很遗憾，您未中奖</h1>
         <img src="../assets/luckyDraw/cry.png" />
-        <div class="btn" @click="hiddenNotWinPopup">好吧下次再来</div>
+        <!-- <div class="btn" @click="hiddenNotWinPopup">好吧下次再来</div> -->
+        <div class="btn" @click="hiddenNotWinPopup">赢取再来一次的机会</div>
       </van-popup>
     </div>
   </div>
@@ -87,6 +88,7 @@
 
 <script>
 import { NoticeBar, Swipe, SwipeItem, Popup } from 'vant'
+import luckyDrawApi from '@/services/luckyDraw'
 
 export default {
   name: 'LuckyDraw',
@@ -108,7 +110,8 @@ export default {
         name: '100M云空间',
         img: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1591960867675&di=97b931661cf964c8f12d5ee01ab73c9d&imgtype=0&src=http%3A%2F%2Fbpic.588ku.com%2Felement_origin_min_pic%2F16%2F10%2F27%2F8f751bb65494c10cb1378282edde7599.jpg'
       },
-      info: {
+      detail: {
+        title: '这里是大标题',
         num: 6,
         detailMessage: '<p>1、 如您成功中奖,请务必在24小时内点击“立即领取”,并填写联系人、手机号、邮寄地址等信息,以便统计发奖；</p><p>若不在规定时间内点击领奖并填写信息,则视为自动放弃该奖项；</p><p>2、奖品发放：所有奖品的发放都将以您抽奖后填写的邮寄信息为依据,请确保填写无误。</p><p>(1)精美课件包:系统将在活动结束后的7个工作日内,将课件获取链接通过希沃学院站内信发送至您的账号;</p><p>3、点击这里下载希沃白板5进行高效备课 规则活动规</p><p>1、 如您成功中奖,请务必在24小时内点击“立即领取”,并填写联系人、手机号、邮寄地址等信息,以便统计发奖；</p><p>若不在规定时间内点击领奖并填写信息,则视为自动放弃该奖项；</p><p>2、奖品发放：所有奖品的发放都将以您抽奖后填写的邮寄信息为依据,请确保填写无误。</p><p>(1)精美课件包:系统将在活动结束后的7个工作日内,将课件获取链接通过希沃学院站内信发送至您的账号;</p><p>3、点击这里下载希沃白板5进行高效备课 规则活动规</p>',
         prizes: [
@@ -173,12 +176,27 @@ export default {
     }
   },
   mounted () {
-    document.querySelector('body').setAttribute('style', 'background-color: #FF6412')
+    this.getDetail()
+    this.getDetail2()
   },
   beforeDestroy () {
     document.querySelector('body').removeAttribute('style')
   },
   methods: {
+    async getDetail () {
+      // const { data } = await luckyDrawApi.activityDetail(2, 'HD000042')
+      // document.querySelector('body').setAttribute('style', `background-color: ${data.backgroundColor}`)
+      // console.log('----------------------')
+      // console.log(data)
+      // console.log('----------------------')
+    },
+    async getDetail2 () {
+      const { data } = await luckyDrawApi.activityInfo(2, 'HD000042')
+      document.querySelector('body').setAttribute('style', `background-color: ${data.backgroundColor}`)
+      console.log('/* ---------------------- */')
+      console.log(data)
+      console.log('/* ---------------------- */')
+    },
     handleStart () {
       if (this.timer) { return false }
       let speed = 200
